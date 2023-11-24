@@ -1,0 +1,8 @@
+*.js
+*.config.js
+*.config.ts
+*.test.js
+*.test.ts
+dist
+*.ini
+*.spec.ts
