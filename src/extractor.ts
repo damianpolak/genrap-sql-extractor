@@ -18,14 +18,15 @@ import { promisify } from 'util';
 import { superbytes } from 'superbytes';
 import { decode } from 'html-entities';
 import YAML from 'yaml';
+import { join } from 'path';
 
 abstract class XMLExtractor {
   public extractedData!: ExtractedData;
 
-  async getDataFromXML(filepath: string): Promise<XMLExtractor> {
+  async runExtractProcess(filepath: string): Promise<XMLExtractor> {
     const xmlData = await this.readXMLFile(filepath);
     if (this.validateXMLHeader(xmlData)) {
-      const extracted = this.extractedXMLObject(xmlData as XMLDataType);
+      const extracted = this.extractXMLObject(xmlData as XMLDataType);
       this.extractedData = {
         ...this.getFileMetadata(filepath),
         ...extracted,
@@ -67,52 +68,53 @@ abstract class XMLExtractor {
     };
   }
 
-  async export(outputDir: string, format: ExportFormat = 'yml'): Promise<void> {
+  async exportToFile(outputDir: string, format: ExportFormat = 'yml'): Promise<void> {
     if (!exportFormatTypes.includes(format)) {
-      console.error('Provided format not recognized');
+      console.error('Error: Provided format not recognized');
       return;
     }
 
     if (!fs.existsSync(outputDir)) {
-      console.error('Provided output directory not exists');
+      console.error('Error: Provided output directory not exists');
       return;
     }
 
     if (!this.extractedData) {
-      console.error('XML was not extracted');
+      console.error('Error: XML was not extracted');
       return;
     }
 
     this.tryExport(outputDir, this.extractedData, format);
   }
 
-  protected async tryExport(outputDir: string, data: ExtractedData, format: ExportFormat): Promise<void> {
+  protected async tryExport(outputDir: string, data: ExtractedData, format: ExportFormat = 'yml'): Promise<void> {
     try {
       const formattedData = this.getDataByFormat(data, format);
-      await promisify(fs.writeFile)(outputDir, formattedData);
+      const path = join(outputDir, `\\${data.filename}.${format}`);
+      await promisify(fs.writeFile)(path, formattedData);
+      console.info('Success: Data exported to file');
     } catch (error) {
-      console.log('An unhandled error occured while trying export data to file');
-      // save error to file
+      console.log('Error: An unhandled error occured while trying export data to file');
     }
   }
 
-  protected getDataByFormat(data: ExtractedData, format: ExportFormat): string {
+  protected getDataByFormat(data: ExtractedData, format: ExportFormat = 'yml'): string {
     switch (format) {
       case 'yml':
         return YAML.stringify(data);
       case 'json':
-        return JSON.stringify(data);
+        return JSON.stringify(data).replace(/\\n/g, ' ').replace(/\s+/g, ' ');
       default: {
         return YAML.stringify(data);
       }
     }
   }
 
-  abstract extractedXMLObject(xmlData: XMLDataType): ExtractedXMLData;
+  abstract extractXMLObject(xmlData: XMLDataType): ExtractedXMLData;
 }
 
 export class GrsExtractor extends XMLExtractor {
-  extractedXMLObject(xmlData: XMLDataType): ExtractedXMLData {
+  extractXMLObject(xmlData: XMLDataType): ExtractedXMLData {
     const grsData = xmlData as XMLGrs.Data;
 
     return {
@@ -128,7 +130,7 @@ export class GrsExtractor extends XMLExtractor {
 }
 
 export class UfnExtractor extends XMLExtractor {
-  extractedXMLObject(xmlData: XMLUfn.Data): ExtractedXMLData {
+  extractXMLObject(xmlData: XMLUfn.Data): ExtractedXMLData {
     return {
       type: ExtractedType.UFN,
       sqls: [
