@@ -3,8 +3,6 @@ import { GenericObjectOrArray, XMLParser } from 'fast-xml-parser';
 import {
   ExtractedXMLData,
   ExtractedType,
-  XMLGrs,
-  XMLUfn,
   XMLDataType,
   xmlGrsHeaders,
   xmlUfnHeaders,
@@ -12,13 +10,16 @@ import {
   FileMetadata,
   ExportFormat,
   exportFormatTypes,
-} from './types';
+} from './types/general.type';
 import fs from 'fs';
 import { promisify } from 'util';
 import { superbytes } from 'superbytes';
 import { decode } from 'html-entities';
 import YAML from 'yaml';
 import { join } from 'path';
+import { XMLUfn } from './types/ufn.type';
+import { XMLGrs } from './types/grs.type';
+import { Helpers } from './helpers';
 
 abstract class XMLExtractor {
   public extractedData!: ExtractedData;
@@ -39,7 +40,7 @@ abstract class XMLExtractor {
   }
 
   getExtractedData(): ExtractedData | undefined {
-    return this.extractedData;
+    return JSON.parse(Helpers.cleanify(JSON.stringify(this.extractedData)));
   }
 
   protected async readXMLFile(filepath: string): Promise<GenericObjectOrArray<unknown>> {
@@ -74,7 +75,7 @@ abstract class XMLExtractor {
       return;
     }
 
-    if (!fs.existsSync(outputDir)) {
+    if (!Helpers.isDirExists(outputDir)) {
       console.error('Error: Provided output directory not exists');
       return;
     }
@@ -103,7 +104,7 @@ abstract class XMLExtractor {
       case 'yml':
         return YAML.stringify(data);
       case 'json':
-        return JSON.stringify(data).replace(/\\n/g, ' ').replace(/\s+/g, ' ');
+        return Helpers.cleanify(JSON.stringify(data));
       default: {
         return YAML.stringify(data);
       }
@@ -116,7 +117,6 @@ abstract class XMLExtractor {
 export class GrsExtractor extends XMLExtractor {
   extractXMLObject(xmlData: XMLDataType): ExtractedXMLData {
     const grsData = xmlData as XMLGrs.Data;
-
     return {
       type: ExtractedType.GRS,
       sqls: grsData.GenrapGrs.oddlSchema.mapping.sql.entities.elem.map((item) => {
@@ -131,14 +131,15 @@ export class GrsExtractor extends XMLExtractor {
 
 export class UfnExtractor extends XMLExtractor {
   extractXMLObject(xmlData: XMLUfn.Data): ExtractedXMLData {
+    const ufnData = xmlData as XMLUfn.Data;
     return {
       type: ExtractedType.UFN,
-      sqls: [
-        {
-          name: 'qqq',
-          sql: 'ccc',
-        },
-      ],
+      sqls: ufnData.GenrapUfn.ufn.UFUserDefEnt.map((item) => {
+        return {
+          name: item['@_name'],
+          sql: decode(item.entKind.userQuery),
+        };
+      }),
     };
   }
 }
