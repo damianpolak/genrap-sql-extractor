@@ -5,6 +5,7 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
+    '@typescript-eslint/no-namespace': 'off',
     'prettier/prettier': [
       'error',
       {
