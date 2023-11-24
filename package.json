@@ -12,6 +12,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^17.0.38",
+    "@types/yargs": "^17.0.31",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
     "eslint": "^8.52.0",
@@ -26,6 +27,7 @@
     "fast-xml-parser": "^4.3.0",
     "html-entities": "^2.4.0",
     "superbytes": "^2.0.1",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "yargs": "^17.7.2"
   }
 }
