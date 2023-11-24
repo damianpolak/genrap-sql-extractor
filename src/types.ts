@@ -1,9 +1,15 @@
-export type ExtractedData = {
-  type: ExtractedType,
-  fileName: string,
-  fileSize: number,
-  sqls: ExtractedDataSqlObj[],
-}
+/* eslint-disable @typescript-eslint/no-namespace */
+export type FileMetadata = {
+  filename: string;
+  filesize: string;
+};
+
+export type ExtractedData = FileMetadata & ExtractedXMLData;
+
+export type ExtractedXMLData = {
+  type: ExtractedType;
+  sqls: ExtractedDataSqlObj[];
+};
 
 export enum ExtractedType {
   GRS = 'GRS',
@@ -11,9 +17,13 @@ export enum ExtractedType {
 }
 
 export type ExtractedDataSqlObj = {
-  name: string,
-  sql: string,
-}
+  name: string;
+  sql: string;
+};
+
+export const xmlMainHeader = ['?xml'];
+export const xmlGrsHeaders = [...xmlMainHeader, 'GenrapGrs'] as const;
+export const xmlUfnHeaders = [...xmlMainHeader, 'GenrapUfn'] as const;
 
 export namespace XMLUfn {
   export interface Data {
@@ -21,22 +31,26 @@ export namespace XMLUfn {
   }
 }
 
+export const exportFormatTypes = ['yml', 'json'] as const satisfies ReadonlyArray<string>;
+
+export type ExportFormat = (typeof exportFormatTypes)[number];
+
 export type XMLDataType = XMLGrs.Data | XMLUfn.Data;
 
 export namespace XMLGrs {
-  export interface Data extends Record<string, any> {
+  export interface Data extends Record<string, unknown> {
     '?xml'?: Record<string, string>;
     GenrapGrs: GenrapGrs;
   }
-  
+
   type GenrapGrs = {
     rpt: GenrapGrsRpt;
     data: string;
     oddlSchema: GenrapGrsOddlschema;
     RSQueryArg: object[];
-    server: any;
+    server: unknown;
   };
-  
+
   type GenrapGrsRpt = {
     pageSize: {
       orient: Record<string, string>;
@@ -49,23 +63,23 @@ export namespace XMLGrs {
       '@_top': string;
       '@_bottom': string;
     };
-    content: any;
-    headers: any;
-    entityParams: any;
-    valueParams: any;
-    promptingSettings: any;
+    content: unknown;
+    headers: unknown;
+    entityParams: unknown;
+    valueParams: unknown;
+    promptingSettings: unknown;
     '@_defHTabSize': string;
   };
-  
+
   type GenrapGrsOddlschema = {
     er: {
       entities: { elem: ErEntityElement[] };
       rels: string;
-      functions: { elem: any };
+      functions: { elem: unknown };
     };
-    mapping: { sql: { entities: { elem: MappingEntityElement[] }; rels: ''; functions: [Object] } };
+    mapping: { sql: { entities: { elem: MappingEntityElement[] }; rels: ''; functions: [object] } };
   };
-  
+
   type ErEntityElement = {
     attrs: SqlEntityElementAttribute;
     PKColumn: {
@@ -78,9 +92,9 @@ export namespace XMLGrs {
     '@_sqlTableQuery': string;
     '@_userDefCols': boolean;
   };
-  
+
   interface MappingEntityElement extends ErEntityElement {}
-  
+
   type SqlEntityElementAttribute = {
     '@_key': string;
     '@_sqlColumn': string;
