@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { GenericObjectOrArray, XMLParser } from 'fast-xml-parser';
 import {
   ExtractedXMLData,
@@ -10,6 +9,7 @@ import {
   FileMetadata,
   ExportFormat,
   exportFormatTypes,
+  GenrapExtractor,
 } from './types/general.type';
 import fs from 'fs';
 import { promisify } from 'util';
@@ -21,10 +21,11 @@ import { XMLUfn } from './types/ufn.type';
 import { XMLGrs } from './types/grs.type';
 import { Helpers } from './helpers';
 
-abstract class XMLExtractor {
+abstract class Extractor implements GenrapExtractor {
   private extractedData!: ExtractedData;
+  abstract extractXMLObject(xmlData: XMLDataType): ExtractedXMLData;
 
-  async runExtractProcess(filepath: string): Promise<XMLExtractor> {
+  async runExtractProcess(filepath: string): Promise<GenrapExtractor> {
     const xmlData = await this.readXMLFile(filepath);
     if (this.validateXMLHeader(xmlData)) {
       const extracted = this.extractXMLObject(xmlData as XMLDataType);
@@ -70,22 +71,10 @@ abstract class XMLExtractor {
   }
 
   async exportToFile(outputDir: string, format: ExportFormat = 'yml'): Promise<void> {
-    if (!exportFormatTypes.includes(format)) {
-      console.error('Error: Provided format not recognized');
-      return;
-    }
-
-    if (!Helpers.isDirExists(outputDir)) {
-      console.error('Error: Provided output directory not exists');
-      return;
-    }
-
-    if (!this.extractedData) {
-      console.error('Error: XML was not extracted');
-      return;
-    }
-
-    this.tryExport(outputDir, this.extractedData, format);
+    if (!exportFormatTypes.includes(format)) throw new Error('Provided format not recognized');
+    if (!Helpers.isDirExists(outputDir)) throw new Error('Provided output directory not exists');
+    if (!this.extractedData) throw new Error('XML was not parsed properly');
+    await this.tryExport(outputDir, this.extractedData, format);
   }
 
   protected async tryExport(outputDir: string, data: ExtractedData, format: ExportFormat = 'yml'): Promise<void> {
@@ -93,9 +82,8 @@ abstract class XMLExtractor {
       const formattedData = this.getDataByFormat(data, format);
       const path = join(outputDir, `\\${data.filename}.${format}`);
       await promisify(fs.writeFile)(path, formattedData);
-      console.info('Success: Data exported to file');
     } catch (error) {
-      console.log('Error: An unhandled error occured while trying export data to file');
+      throw new Error('An unhandled error occured while trying export data to file');
     }
   }
 
@@ -110,11 +98,9 @@ abstract class XMLExtractor {
       }
     }
   }
-
-  abstract extractXMLObject(xmlData: XMLDataType): ExtractedXMLData;
 }
 
-export class GrsExtractor extends XMLExtractor {
+export class GrsExtractor extends Extractor {
   extractXMLObject(xmlData: XMLDataType): ExtractedXMLData {
     const grsData = xmlData as XMLGrs.Data;
     return {
@@ -129,7 +115,7 @@ export class GrsExtractor extends XMLExtractor {
   }
 }
 
-export class UfnExtractor extends XMLExtractor {
+export class UfnExtractor extends Extractor {
   extractXMLObject(xmlData: XMLUfn.Data): ExtractedXMLData {
     const ufnData = xmlData as XMLUfn.Data;
     return {
