@@ -1,3 +1,4 @@
+import yargs from 'yargs';
 import { XMLGrs } from './grs.type';
 import { XMLUfn } from './ufn.type';
 
@@ -32,3 +33,10 @@ export const exportFormatTypes = ['yml', 'json'] as const satisfies ReadonlyArra
 export type ExportFormat = (typeof exportFormatTypes)[number];
 
 export type XMLDataType = XMLGrs.Data | XMLUfn.Data;
+
+export interface CliArguments extends yargs.Arguments {
+  format?: ExportFormat;
+  outputDir?: string;
+  inputDir?: string;
+  inputFiles?: string[];
+}
