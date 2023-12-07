@@ -1,5 +1,7 @@
 import fs from 'fs';
+import { join } from 'path';
 import { promisify } from 'util';
+import { LogLevel } from './types/general.type';
 
 export class Helpers {
   static cleanify(str: string): string {
@@ -14,8 +16,13 @@ export class Helpers {
     return inputFiles ? inputFiles : inputDir;
   }
 
-  static async getFilesFromDir(directory: string): Promise<string[]> {
-    console.log(`=== Directory: ${directory}`);
-    return await promisify(fs.readdir)(directory);
+  static async getFilesPathFromDir(directory: string): Promise<string[]> {
+    return (await promisify(fs.readdir)(directory)).map((file) => {
+      return join(directory, file);
+    });
+  }
+
+  static log(logLevel: LogLevel, data: string): void {
+    console.info(`[${logLevel}] ${data}`);
   }
 }
