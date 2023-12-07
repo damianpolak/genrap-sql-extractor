@@ -2,22 +2,6 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { exportFormatTypes } from './types/general.type';
 
-process.argv = [
-  'C:\\Program Files\\nodejs\\node.exe',
-  'C:\\TestDir\\Directory\\cli.ts',
-  // '-i',
-  // '12333',
-  // '--inputFiles',
-  // '../src/exampleFiles.txt',
-  // '../src/exampleFiles2.txt',
-  '--inputDir',
-  'src\\genrap',
-  '-f',
-  'yml',
-  '-o',
-  'C:\\Users\\damia\\d\\MYSTUFF\\devspace\\playground\\genrap-sql-extractor\\src\\genrap',
-];
-
 export const cliArgsParse = () => {
   return yargs(hideBin(process.argv))
     .usage('$ genrap-extractor [options]')
