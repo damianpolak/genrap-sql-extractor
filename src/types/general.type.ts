@@ -2,6 +2,13 @@ import yargs from 'yargs';
 import { XMLGrs } from './grs.type';
 import { XMLUfn } from './ufn.type';
 
+export interface GenrapExtractor {
+  runExtractProcess(filepath: string): Promise<GenrapExtractor>;
+  getExtractedData(): ExtractedData | undefined;
+  exportToFile(outputDir: string, format: ExportFormat): Promise<void>;
+  extractXMLObject(xmlData: XMLDataType): ExtractedXMLData;
+}
+
 export type FileMetadata = {
   filename: string;
   filesize: string;
@@ -40,3 +47,5 @@ export interface CliArguments extends yargs.Arguments {
   inputDir?: string;
   inputFiles?: string[];
 }
+
+export type LogLevel = 'Success' | 'Info' | 'Warn' | 'Error';
