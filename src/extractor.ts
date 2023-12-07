@@ -22,7 +22,7 @@ import { XMLGrs } from './types/grs.type';
 import { Helpers } from './helpers';
 
 abstract class XMLExtractor {
-  public extractedData!: ExtractedData;
+  private extractedData!: ExtractedData;
 
   async runExtractProcess(filepath: string): Promise<XMLExtractor> {
     const xmlData = await this.readXMLFile(filepath);
