@@ -7,22 +7,26 @@ process.argv = [
   'C:\\TestDir\\Directory\\cli.ts',
   // '-i',
   // '12333',
-  '-d',
-  // 'asdddd',
-  'asdddd2',
+  // '--inputFiles',
+  // '../src/exampleFiles.txt',
+  // '../src/exampleFiles2.txt',
+  '--inputDir',
+  'src\\genrap',
   '-f',
   'yml',
   '-o',
-  'test',
+  'C:\\Users\\damia\\d\\MYSTUFF\\devspace\\playground\\genrap-sql-extractor\\src\\genrap',
 ];
 
-const argv = yargs(process.argv.slice(2))
-  .options({
-    i: { type: 'array', alias: 'input-files', conflicts: 'input-dir' },
-    d: { type: 'string', alias: 'input-dir', conflicts: 'input-files' },
-    o: { type: 'string', alias: 'output-dir', required: true },
-    f: { type: 'string', alias: 'format', choices: exportFormatTypes, required: true },
-  })
-  .parse();
-
-console.log(`is argv: `, argv);
+export const cliArgsParse = () => {
+  return yargs(hideBin(process.argv))
+    .usage('$ genrap-extractor [options]')
+    .example('$ genrap-extractor --inputDir=<path> --outputDir=<path> --format=<format>', '')
+    .options({
+      i: { type: 'array', alias: 'input-files', conflicts: 'input-dir' },
+      d: { type: 'string', alias: 'input-dir', conflicts: 'input-files' },
+      o: { type: 'string', alias: 'output-dir', required: true },
+      f: { type: 'string', alias: 'format', choices: exportFormatTypes, required: true },
+    })
+    .parse();
+};
